@@ -1,0 +1,44 @@
+# Entorno virtual
+venv/
+ENV/
+env/
+.venv/
+
+# Archivos de configuración del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de logs y bases de datos
+*.log
+*.sqlite3
+
+# Archivos temporales de Jupyter, VSCode y editores comunes
+.ipynb_checkpoints/
+.vscode/
+.idea/
+*.swp
+*.bak
+
+# Archivos de matplotlib y plotly
+*.png
+*.pdf
+*.svg
+*.eps
+
+# Variables de entorno y claves secretas
+.env
+.env.*
+
+# Compilaciones
+build/
+dist/
+*.egg-info/
+
+# Dependencias (solo si usas pip freeze)
+# requirements.txt sí se debe versionar, pero no los paquetes descargados
+pip-wheel-metadata/
