@@ -49,7 +49,15 @@ def generar_grafica():
     colors = ['red', 'green', 'blue']
 
     # rango de frecuencia
-    frequencies = np.linspace(180, 260, 3000)
+    min_left = float('inf')
+    max_right = float('-inf')
+    for s in signals:
+        left = s["fc"] - (s["bw"] / 2)
+        right = s["fc"] + (s["bw"] / 2)
+        min_left = min(min_left, left)
+        max_right = max(max_right, right)
+
+    frequencies = np.linspace(min_left - 10, max_right + 10, 3000)
 
     np.random.seed(42)
     noise = noise_floor + np.random.normal(0, 0.5, size=frequencies.shape)
@@ -58,7 +66,9 @@ def generar_grafica():
     plt.figure(figsize=(12, 6))
     plt.plot(frequencies, noise, linestyle='--', color='gray', label="Ruido térmico")
 
+    max_p_max = 0
     for idx, s in enumerate(signals):
+        max_p_max = max(max_p_max,s["p_max"])
         power = signal_power(frequencies, s["fc"], s["bw"], s["p_max"])
         plt.plot(frequencies, power, color=colors[idx], linewidth=2.5, label=f"Señal {idx+1} Fc={s['fc']} MHz")
         
@@ -75,8 +85,8 @@ def generar_grafica():
     plt.title("Gráfica de Espectro con Curvas Suaves y Nivel de -3 dB")
     plt.xlabel("Frecuencia (MHz)")
     plt.ylabel("Potencia (dBm)")
-    plt.ylim(noise_floor - 10, 6)
-    plt.xlim(180, 260)
+    plt.ylim(noise_floor - 10, max_p_max+10)
+    plt.xlim(min_left - 10, max_right + 10)
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
