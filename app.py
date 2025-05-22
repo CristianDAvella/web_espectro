@@ -91,5 +91,11 @@ def generar_grafica():
     plt.legend()
     plt.tight_layout()
     plt.show()
+    
+# Endpoint para cuando se genere un error
+# @app.errorhandler(404)
+# def not_found_endpoint(error):
+#     return redirect('index.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
