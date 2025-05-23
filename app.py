@@ -40,6 +40,7 @@ def signal_power(f, fc, bw, p_max):
 
 @app.route('/generar_grafica', methods=['GET'])
 def generar_grafica():
+    
     global Bw, temperatura, signals
     #Calcular ruido termico
     recoger_datos()
