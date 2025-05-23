@@ -91,12 +91,17 @@ def generar_grafica():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    #Guradmamos la imagen del grafico para mostrarla en otra interfaz en un archivo llamado plot.png
+    plt.savefig("static/plot.png")
+    #plt.show() #Ventana emergente mostrando la grafica
+    plt.close() #PAra evitar problemas al intentar generar varias graficas
+    return render_template('grafica.html',image_url='static/plot.png')
     
-# Endpoint para cuando se genere un error
-# @app.errorhandler(404)
-# def not_found_endpoint(error):
-#     return redirect('index.html')
+    
+#Endpoint para cuando se genere un error
+@app.errorhandler(404)
+def not_found_endpoint(error):
+     return redirect('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
