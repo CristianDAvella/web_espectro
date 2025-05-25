@@ -36,6 +36,27 @@ def signal_power(f, fc, bw, p_max):
     x = (f - fc) / (bw / 2)
     return p_max - 3 * (x ** 2)
 
+def calcular_snr_y_comparaciones(signals, noise_floor):
+    resumen = []
+
+    for i, s in enumerate(signals):
+        snr = s["p_max"] - noise_floor
+        comparaciones = []
+        for j, t in enumerate(signals):
+            if i != j:
+                delta = s["p_max"] - t["p_max"]
+                signo = "+" if delta >= 0 else "–"
+                comparaciones.append(f"{signo}{abs(round(delta, 2))} vs Señal{j+1}")
+        resumen.append({
+            "nombre": f"{i+1}",
+            "fc": s["fc"],
+            "bw": s["bw"],
+            "potencia": s["p_max"],
+            "snr": round(snr, 2),
+            "comparacion": "<br>".join(comparaciones)
+        })
+    return resumen
+
 @app.route('/generar_grafica', methods=['GET'])
 def generar_grafica():
     
@@ -148,9 +169,9 @@ def generar_grafica():
     # 그래프 그리기 (plot 부분에서 noise → masked_noise로 교체)
     plt.figure(figsize=(12, 6))
     plt.plot(frequencies, masked_noise, linestyle='--', color='gray', label="Ruido térmico")
-    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label="Señal 1 (fc=200 MHz)")
-    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label="Señal 2 (fc=210 MHz)")
-    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label="Señal 3 (fc=220 MHz)")
+    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label=f"Señal 1 (fc={signals[0]["fc"]} MHz)")
+    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label=f"Señal 2 (fc={signals[1]["fc"]} MHz)")
+    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label=f"Señal 3 (fc={signals[2]["fc"]} MHz)")
     # ... 이하 생략 ...
 
     for s, col in zip(signals, colors):
@@ -173,9 +194,10 @@ def generar_grafica():
     plt.tight_layout()
     #Guradmamos la imagen del grafico para mostrarla en otra interfaz en un archivo llamado plot.png
     plt.savefig("static/plot.png")
+    resumen = calcular_snr_y_comparaciones(signals, noise_floor)
     #plt.show() #Ventana emergente mostrando la grafica
     plt.close() #PAra evitar problemas al intentar generar varias graficas
-    return render_template('grafica.html',image_url='static/plot.png')
+    return render_template('grafica.html',image_url='static/plot.png', resumen=resumen)
     
     
 #Endpoint para cuando se genere un error
