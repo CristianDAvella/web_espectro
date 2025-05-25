@@ -66,10 +66,10 @@ def generar_grafica():
         else:
             print(f"Signal {i+1}: too weak, always below noise floor")
     #────────────────────────────────────────────
-    # 신호 전파 모델 함수 (포물선 형태)
+
     #────────────────────────────────────────────
     # 전체 주파수 범위 결정
-    frequencies = np.linspace(min_left, max_right, 5000)
+    frequencies = np.linspace(min_left-5, max_right+5, 5000)
 
     #────────────────────────────────────────────
     # 각 신호 곡선 계산
@@ -134,11 +134,24 @@ def generar_grafica():
 
     #────────────────────────────────────────────
     # 그래프 그리기
+    # ────────────────────────────────────────────
+
+    # ────────────────────────────────────────────
+    # (추가) noise 선도 역시 신호 위에 남은 구간만 그리기 위해 마스킹
+    masked_noise = np.where(
+        np.isnan(p1) & np.isnan(p2) & np.isnan(p3),
+        noise,
+        np.nan
+    )
+
+    # ────────────────────────────────────────────
+    # 그래프 그리기 (plot 부분에서 noise → masked_noise로 교체)
     plt.figure(figsize=(12, 6))
-    plt.plot(frequencies, noise, linestyle='--', color='gray', label="Ruido térmico")
+    plt.plot(frequencies, masked_noise, linestyle='--', color='gray', label="Ruido térmico")
     plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label="Señal 1 (fc=200 MHz)")
     plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label="Señal 2 (fc=210 MHz)")
     plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label="Señal 3 (fc=220 MHz)")
+    # ... 이하 생략 ...
 
     for s, col in zip(signals, colors):
         plt.axvline(s["fc"], color=col, linestyle='-',  linewidth=1)
@@ -168,7 +181,7 @@ def generar_grafica():
 #Endpoint para cuando se genere un error
 @app.errorhandler(404)
 def not_found_endpoint(error):
-     return redirect('index.html')
+    return redirect('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
