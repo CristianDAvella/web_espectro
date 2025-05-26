@@ -68,17 +68,17 @@ def generar_grafica():
     #────────────────────────────────────────────
 
     #────────────────────────────────────────────
-    # 전체 주파수 범위 결정
+    # Determinar el rango completo de frecuencias
     frequencies = np.linspace(min_left-5, max_right+5, 5000)
 
     #────────────────────────────────────────────
-    # 각 신호 곡선 계산
+    # Calcular la curva de cada señal
     p1 = signal_power(frequencies, signals[0]["fc"], signals[0]["bw"], signals[0]["p_max"])
     p2 = signal_power(frequencies, signals[1]["fc"], signals[1]["bw"], signals[1]["p_max"])
     p3 = signal_power(frequencies, signals[2]["fc"], signals[2]["bw"], signals[2]["p_max"])
 
     #────────────────────────────────────────────
-    # [교차 처리 1] 신호 1과 신호 2 사이
+    # [Cruce 1] Entre la señal 1 y la señal 2
     mask_12 = (frequencies >= signals[0]["fc"]) & (frequencies <= signals[1]["fc"])
     diff_12 = p1[mask_12] - p2[mask_12]
     cross_12 = np.where(np.diff(np.sign(diff_12)) != 0)[0]
@@ -89,7 +89,7 @@ def generar_grafica():
         p2[frequencies <  f_cr_12] = np.nan
 
     #────────────────────────────────────────────
-    # [교차 처리 2] 신호 2와 신호 3 사이
+    # [Cruce 2] Entre la señal 2 y la señal 3
     mask_23 = (frequencies >= signals[1]["fc"]) & (frequencies <= signals[2]["fc"])
     diff_23 = p2[mask_23] - p3[mask_23]
     cross_23 = np.where(np.diff(np.sign(diff_23)) != 0)[0]
@@ -100,7 +100,7 @@ def generar_grafica():
         p3[frequencies <  f_cr_23] = np.nan
 
     #────────────────────────────────────────────
-    # [교차 처리 3] 신호 1과 신호 3 사이 (유효 구간만)
+    # [Cruce 3] Entre la señal 1 y la señal 3
     start_13 = signals[0]["fc"] + signals[0]["bw"]/2
     end_13   = signals[2]["fc"] - signals[2]["bw"]/2
 
@@ -117,7 +117,7 @@ def generar_grafica():
         p3[frequencies <  f_cr_13] = np.nan
 
     #────────────────────────────────────────────
-    # 열 잡음 (ruido térmico) 계산 및 신호 아래 영역 삭제
+    # Calcular el ruido térmico y eliminar las áreas por debajo del nivel de ruido
     np.random.seed(42)
     noise = noise_floor + np.random.normal(0, 0.5, size=frequencies.shape)
     p1[p1 < noise] = np.nan
@@ -125,7 +125,7 @@ def generar_grafica():
     p3[p3 < noise] = np.nan
 
     #────────────────────────────────────────────
-    # ★ 덮인 신호 제거: 각 주파수에서 가장 높은 전력만 남기기 ★
+    # Eliminar señales solapadas: conservar solo la potencia más alta en cada frecuencia
     stacked_signals = np.vstack((p1, p2, p3))
     max_power = np.nanmax(stacked_signals, axis=0)
     p1 = np.where(p1 < max_power, np.nan, p1)
@@ -133,11 +133,8 @@ def generar_grafica():
     p3 = np.where(p3 < max_power, np.nan, p3)
 
     #────────────────────────────────────────────
-    # 그래프 그리기
-    # ────────────────────────────────────────────
 
-    # ────────────────────────────────────────────
-    # (추가) noise 선도 역시 신호 위에 남은 구간만 그리기 위해 마스킹
+    # Eliminar lineas de ruido termico que estan debajo de las curvas
     masked_noise = np.where(
         np.isnan(p1) & np.isnan(p2) & np.isnan(p3),
         noise,
@@ -145,13 +142,12 @@ def generar_grafica():
     )
 
     # ────────────────────────────────────────────
-    # 그래프 그리기 (plot 부분에서 noise → masked_noise로 교체)
+    # Dibujar grafica
     plt.figure(figsize=(12, 6))
     plt.plot(frequencies, masked_noise, linestyle='--', color='gray', label="Ruido térmico")
     plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label="Señal 1 (fc=200 MHz)")
     plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label="Señal 2 (fc=210 MHz)")
     plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label="Señal 3 (fc=220 MHz)")
-    # ... 이하 생략 ...
 
     for s, col in zip(signals, colors):
         plt.axvline(s["fc"], color=col, linestyle='-',  linewidth=1)
