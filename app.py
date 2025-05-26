@@ -20,9 +20,22 @@ signals = [
 ]
 
 def recoger_datos():
-    global Bw, temperatura,signals
-    Bw = float(request.args.get('Bw'))
-    temperatura = float(request.args.get('temperatura'))
+    global Bw, temperatura,signals, ruido_manual
+    ruido_manual = None
+    modo_ruido = request.args.get('modo_ruido')
+    # Lee valores según el modo elegido
+    if modo_ruido == 'manual':
+        ruido_str = request.args.get('ruido')
+        try:
+            ruido_manual = float(ruido_str)
+            temperatura = 0
+            Bw = 0
+        except (TypeError, ValueError):
+            ruido_manual = None
+    else:
+        ruido_manual = None
+        temperatura = float(request.args.get('temperatura'))
+        Bw = float(request.args.get('Bw'))
 
     # Reemplazar completamente los valores anteriores
     signals = []
@@ -36,6 +49,27 @@ def signal_power(f, fc, bw, p_max):
     x = (f - fc) / (bw / 2)
     return p_max - 3 * (x ** 2)
 
+def calcular_snr_y_comparaciones(signals, noise_floor):
+    resumen = []
+
+    for i, s in enumerate(signals):
+        snr = s["p_max"] - noise_floor
+        comparaciones = []
+        for j, t in enumerate(signals):
+            if i != j:
+                delta = s["p_max"] - t["p_max"]
+                signo = "+" if delta >= 0 else "–"
+                comparaciones.append(f"{signo}{abs(round(delta, 2))} vs Señal{j+1}")
+        resumen.append({
+            "nombre": f"{i+1}",
+            "fc": s["fc"],
+            "bw": s["bw"],
+            "potencia": s["p_max"],
+            "snr": round(snr, 2),
+            "comparacion": "<br>".join(comparaciones)
+        })
+    return resumen
+
 @app.route('/generar_grafica', methods=['GET'])
 def generar_grafica():
     
@@ -44,7 +78,12 @@ def generar_grafica():
     recoger_datos()
     Bw*= 1000 #Pasar de KHz a Hz
     k = 1.38*10**-23
-    noise_floor = 10 * math.log10(k*temperatura*Bw) + 30 # en dBm
+    if ruido_manual is not None:
+        noise_floor = ruido_manual
+    else:
+        Bw *= 1000  # kHz → Hz solo si se calcula automáticamente
+        noise_floor = 10 * math.log10(k * temperatura * Bw) + 30  # en dBm
+
     colors = ['red', 'green', 'blue']
 
     # rango de frecuencia
@@ -145,9 +184,10 @@ def generar_grafica():
     # Dibujar grafica
     plt.figure(figsize=(12, 6))
     plt.plot(frequencies, masked_noise, linestyle='--', color='gray', label="Ruido térmico")
-    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label="Señal 1 (fc=200 MHz)")
-    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label="Señal 2 (fc=210 MHz)")
-    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label="Señal 3 (fc=220 MHz)")
+
+    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label=f"Señal 1 (fc={signals[0]["fc"]} MHz)")
+    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label=f"Señal 2 (fc={signals[1]["fc"]} MHz)")
+    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label=f"Señal 3 (fc={signals[2]["fc"]} MHz)")
 
     for s, col in zip(signals, colors):
         plt.axvline(s["fc"], color=col, linestyle='-',  linewidth=1)
@@ -169,9 +209,10 @@ def generar_grafica():
     plt.tight_layout()
     #Guradmamos la imagen del grafico para mostrarla en otra interfaz en un archivo llamado plot.png
     plt.savefig("static/plot.png")
+    resumen = calcular_snr_y_comparaciones(signals, noise_floor)
     #plt.show() #Ventana emergente mostrando la grafica
     plt.close() #PAra evitar problemas al intentar generar varias graficas
-    return render_template('grafica.html',image_url='static/plot.png')
+    return render_template('grafica.html',image_url='static/plot.png', resumen=resumen)
     
     
 #Endpoint para cuando se genere un error
