@@ -20,9 +20,22 @@ signals = [
 ]
 
 def recoger_datos():
-    global Bw, temperatura,signals
-    Bw = float(request.args.get('Bw'))
-    temperatura = float(request.args.get('temperatura'))
+    global Bw, temperatura,signals, ruido_manual
+    ruido_manual = None
+    modo_ruido = request.args.get('modo_ruido')
+    # Lee valores según el modo elegido
+    if modo_ruido == 'manual':
+        ruido_str = request.args.get('ruido')
+        try:
+            ruido_manual = float(ruido_str)
+            temperatura = 0
+            Bw = 0
+        except (TypeError, ValueError):
+            ruido_manual = None
+    else:
+        ruido_manual = None
+        temperatura = float(request.args.get('temperatura'))
+        Bw = float(request.args.get('Bw'))
 
     # Reemplazar completamente los valores anteriores
     signals = []
@@ -65,7 +78,12 @@ def generar_grafica():
     recoger_datos()
     Bw*= 1000 #Pasar de KHz a Hz
     k = 1.38*10**-23
-    noise_floor = 10 * math.log10(k*temperatura*Bw) + 30 # en dBm
+    if ruido_manual is not None:
+        noise_floor = ruido_manual
+    else:
+        Bw *= 1000  # kHz → Hz solo si se calcula automáticamente
+        noise_floor = 10 * math.log10(k * temperatura * Bw) + 30  # en dBm
+
     colors = ['red', 'green', 'blue']
 
     # rango de frecuencia
