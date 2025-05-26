@@ -99,9 +99,9 @@
                                 <thead class="table-primary">
                                     <tr>
                                         <th>Señal</th>
-                                        <th>Fc (MHz)</th>
-                                        <th>BW (MHz)</th>
-                                        <th>Potencia (dBm)</th>
+                                        <th class="d-none d-sm-table-cell" >Fc (MHz)</th>
+                                        <th class="d-none d-sm-table-cell">BW (MHz)</th>
+                                        <th class="d-none d-sm-table-cell">Potencia (dBm)</th>
                                         <th>SNR (dB)</th>
                                         <th>Comparación con otras señales</th>
                                     </tr>
@@ -110,9 +110,9 @@
                                     {% for s in resumen %}
                                     <tr>
                                         <td>{{ s.nombre }}</td>
-                                        <td>{{ s.fc }}</td>
-                                        <td>{{ s.bw }}</td>
-                                        <td>{{ s.potencia }}</td>
+                                        <td class="d-none d-sm-table-cell">{{ s.fc }}</td>
+                                        <td class="d-none d-sm-table-cell">{{ s.bw }}</td>
+                                        <td class="d-none d-sm-table-cell">{{ s.potencia }}</td>
                                         <td>{{ s.snr }}</td>
                                         <td>{{ s.comparacion|safe }}</td>
                                     </tr>
