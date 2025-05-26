@@ -184,6 +184,10 @@ def generar_grafica():
     # Dibujar grafica
     plt.figure(figsize=(12, 6))
     plt.plot(frequencies, masked_noise, linestyle='--', color='gray', label="Ruido térmico")
+    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label=f'Señal 1 (fc={signals[0]["fc"]} MHz)')
+    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label=f'Señal 2 (fc={signals[1]["fc"]} MHz)')
+    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label=f'Señal 3 (fc={signals[2]["fc"]} MHz)')
+    # ... 이하 생략 ...
 
     plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label=f"Señal 1 (fc={signals[0]["fc"]} MHz)")
     plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label=f"Señal 2 (fc={signals[1]["fc"]} MHz)")
