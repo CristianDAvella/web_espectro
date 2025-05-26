@@ -189,10 +189,6 @@ def generar_grafica():
     plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label=f'Señal 3 (fc={signals[2]["fc"]} MHz)')
     # ... 이하 생략 ...
 
-    plt.plot(frequencies, p1, color=colors[0], linewidth=2.5, label=f'Señal 1 (fc={signals[0]["fc"]} MHz)')
-    plt.plot(frequencies, p2, color=colors[1], linewidth=2.5, label=f'Señal 2 (fc={signals[1]["fc"]} MHz)')
-    plt.plot(frequencies, p3, color=colors[2], linewidth=2.5, label=f'Señal 3 (fc={signals[2]["fc"]} MHz)')
-
     for s, col in zip(signals, colors):
         plt.axvline(s["fc"], color=col, linestyle='-',  linewidth=1)
         plt.axvline(s["fc"]-(s["bw"]/2), color=col, linestyle=':', linewidth=1)
